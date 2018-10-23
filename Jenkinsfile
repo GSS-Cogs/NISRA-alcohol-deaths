@@ -19,6 +19,11 @@ pipeline {
                 sh "jupyter-nbconvert --output-dir=out --ExecutePreprocessor.timeout=None --execute 'main.ipynb'"
             }
         }
+        stage('Review') {
+            steps {
+                error "Needs review"
+            }
+        }
     }
     post {
         always {
