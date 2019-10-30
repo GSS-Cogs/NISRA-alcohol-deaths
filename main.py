@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[3]:
+# In[118]:
 
 
 from gssutils import *
@@ -12,7 +12,7 @@ scraper.distribution(
 ).downloadURL
 
 
-# In[4]:
+# In[119]:
 
 
 if is_interactive():
@@ -37,13 +37,13 @@ if is_interactive():
     tab = loadxlstabs(inputFile, sheetids='Table 2')[0]
 
 
-# In[5]:
+# In[120]:
 
 
 tidy = pd.DataFrame()
 
 
-# In[6]:
+# In[121]:
 
 
 cell = tab.filter('Registration Year')
@@ -65,7 +65,7 @@ if is_interactive():
 table = c1.topandas()
 
 
-# In[7]:
+# In[122]:
 
 
 import numpy as np
@@ -75,13 +75,13 @@ table.rename(columns={'OBS': 'Value'}, inplace=True)
 table['Value'] = table['Value'].astype(int)
 
 
-# In[8]:
+# In[123]:
 
 
 table['Period'] = 'year/' + table['Year'].astype(str).str[0:4]
 
 
-# In[9]:
+# In[124]:
 
 
 table['Period'] = table['Period'].map(
@@ -90,13 +90,13 @@ table['Period'] = table['Period'].map(
         }.get(x, x))
 
 
-# In[10]:
+# In[125]:
 
 
 table = table[table['Age'] != 'Median Age']
 
 
-# In[11]:
+# In[126]:
 
 
 table['Age'] = table['Age'].map(
@@ -112,31 +112,32 @@ table['Age'] = table['Age'].map(
         }.get(x, x))
 
 
-# In[12]:
+# In[127]:
 
 
 table = table[['Period','Age','Sex','Underlying Cause of Death','Health and Social Care Trust','Measure Type','Value','Unit']]
 
 
-# In[13]:
+# In[128]:
 
 
 tidy = pd.concat([tidy,table])
 
 
-# In[14]:
+# In[129]:
 
 
 tab1 = loadxlstabs(inputFile, sheetids='Table 1')[0]
 
 
-# In[15]:
+# In[130]:
 
 
 cell1 = tab1.filter('Registration Year')
 sex = cell1.fill(RIGHT).is_not_blank().is_not_blank().is_not_whitespace() |        cell1.shift(0,1).fill(RIGHT).is_not_blank().is_not_whitespace()
 Year = cell1.fill(DOWN).is_not_blank().is_not_whitespace()
-observations1 = Year.fill(RIGHT).is_not_blank().is_not_whitespace()
+allPersons = tab1.filter('All Persons').fill(DOWN).is_not_blank()
+observations1 = Year.fill(RIGHT).is_not_blank().is_not_whitespace() - allPersons
 Dimensions1 = [
             HDim(Year,'Year',DIRECTLY,LEFT),
             HDim(sex, 'Sex',DIRECTLY,ABOVE),
@@ -144,7 +145,8 @@ Dimensions1 = [
             HDimConst('Unit','People'),
             HDimConst('Age', 'all'),
             HDimConst('Underlying Cause of Death', 'all-alcohol-related-deaths'),
-            HDimConst('Health and Social Care Trust', 'all')
+            HDimConst('Health and Social Care Trust', 'all'),
+            #HDim(allPersons, 'All Persons', DIRECTLY, LEFT)
             ]
 c2 = ConversionSegment(observations1, Dimensions1, processTIMEUNIT=True)
 if is_interactive():
@@ -152,7 +154,7 @@ if is_interactive():
 table1 = c2.topandas()
 
 
-# In[16]:
+# In[131]:
 
 
 table1['OBS'].replace('', np.nan, inplace=True)
@@ -161,13 +163,13 @@ table1.rename(columns={'OBS': 'Value'}, inplace=True)
 table1['Value'] = table1['Value'].astype(int)
 
 
-# In[17]:
+# In[132]:
 
 
 table1['Period'] = 'year/' + table1['Year'].astype(str).str[0:4]
 
 
-# In[18]:
+# In[133]:
 
 
 table1['Period'] = table1['Period'].map(
@@ -176,7 +178,7 @@ table1['Period'] = table1['Period'].map(
         }.get(x, x))
 
 
-# In[19]:
+# In[134]:
 
 
 table1['Sex'] = table1['Sex'].map(
@@ -187,25 +189,25 @@ table1['Sex'] = table1['Sex'].map(
         }.get(x, x))
 
 
-# In[20]:
+# In[135]:
 
 
 table1 = table1[['Period','Age','Sex','Underlying Cause of Death','Health and Social Care Trust','Measure Type','Value','Unit']]
 
 
-# In[21]:
+# In[136]:
 
 
 tidy = pd.concat([tidy,table1])
 
 
-# In[22]:
+# In[137]:
 
 
 tab2 = loadxlstabs(inputFile, sheetids='Table 3')[0]
 
 
-# In[23]:
+# In[138]:
 
 
 cell2 = tab2.filter('Underlying Cause (ICD-10 codes)')
@@ -227,7 +229,7 @@ if is_interactive():
 table2 = c3.topandas()
 
 
-# In[24]:
+# In[139]:
 
 
 table2['OBS'].replace('', np.nan, inplace=True)
@@ -237,14 +239,14 @@ table2['Value'] = table2['Value'].astype(int)
 table2['Period'] = 'year/' + table2['Year'].astype(str).str[0:4]
 
 
-# In[25]:
+# In[140]:
 
 
 table2 = table2[table2['Underlying Cause of Death'] != 'Total deaths from all causes']
 table2 = table2[table2['Underlying Cause of Death'] != 'All alcohol related deaths']
 
 
-# In[26]:
+# In[141]:
 
 
 table2['Period'] = table2['Period'].map(
@@ -261,25 +263,25 @@ table2['Underlying Cause of Death'] = table2['Underlying Cause of Death'].map(
         }.get(x, x))
 
 
-# In[27]:
+# In[142]:
 
 
 table2 = table2[['Period','Age','Sex','Underlying Cause of Death','Health and Social Care Trust','Measure Type','Value','Unit']]
 
 
-# In[28]:
+# In[143]:
 
 
 tidy = pd.concat([tidy,table2])
 
 
-# In[29]:
+# In[144]:
 
 
 tab3 = loadxlstabs(inputFile, sheetids='Table 4')[0]
 
 
-# In[30]:
+# In[145]:
 
 
 cell3 = tab3.filter('Registration Year')
@@ -301,7 +303,7 @@ if is_interactive():
 table3 = c4.topandas()
 
 
-# In[31]:
+# In[146]:
 
 
 table3['OBS'].replace('', np.nan, inplace=True)
@@ -311,7 +313,7 @@ table3['Value'] = table3['Value'].astype(int)
 table3['Period'] = 'year/' + table3['Year'].astype(str).str[0:4]
 
 
-# In[32]:
+# In[147]:
 
 
 table3['Period'] = table3['Period'].map(
@@ -320,13 +322,13 @@ table3['Period'] = table3['Period'].map(
         }.get(x, x))
 
 
-# In[33]:
+# In[148]:
 
 
 table3 = table3[table3['Health and Social Care Trust'] != 'Total']
 
 
-# In[34]:
+# In[149]:
 
 
 table3['Health and Social Care Trust'] = table3['Health and Social Care Trust'].map(
@@ -337,13 +339,13 @@ table3['Health and Social Care Trust'] = table3['Health and Social Care Trust'].
         }.get(x, x))
 
 
-# In[35]:
+# In[150]:
 
 
 table3 = table3[['Period','Age','Sex','Underlying Cause of Death','Health and Social Care Trust','Measure Type','Value','Unit']]
 
 
-# In[36]:
+# In[151]:
 
 
 if is_interactive():
@@ -352,7 +354,7 @@ if is_interactive():
     tidy.to_csv(destinationFolder / ('observations.csv'), index = False)
 
 
-# In[38]:
+# In[152]:
 
 
 from pathlib import Path
@@ -366,6 +368,34 @@ with open(out / 'dataset.trig', 'wb') as metadata:
     
 csvw = CSVWMetadata('https://gss-cogs.github.io/ref_alcohol/')
 csvw.create(out / 'observations.csv', out / 'observations.csv-schema.json')
+
+
+# In[153]:
+
+
+import pandas as pd
+df = pd.read_csv(out / "observations.csv")
+df["all_dimensions_concatenated"] = ""
+for col in df.columns.values:
+    if col != "Value":
+        df["all_dimensions_concatenated"] = df["all_dimensions_concatenated"]+df[col].astype(str)
+found = []
+bad_combos = []
+for item in df["all_dimensions_concatenated"]:
+    if item not in found:
+        found.append(item)
+    else:
+        bad_combos.append(item)
+df = df[df["all_dimensions_concatenated"].map(lambda x: x in bad_combos)]
+drop_these_cols = []
+for col in df.columns.values:
+    if col != "all_dimensions_concatenated" and col != "Value":
+        drop_these_cols.append(col)
+for dtc in drop_these_cols:
+    df = df.drop(dtc, axis=1)
+df = df[["all_dimensions_concatenated", "Value"]]
+df = df.sort_values(by=['all_dimensions_concatenated'])
+df.to_csv("duplicates_with_values.csv", index=False)
 
 
 # In[ ]:
